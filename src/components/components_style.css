@@ -1,0 +1,65 @@
+/* components_style.css */
+
+/* Button Styles */
+.custom-button {
+    background-color: #87CEEB;
+    /* Bleu ciel (sky blue) */
+    color: white;
+    border: 2px solid #87CEEB;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.custom-button:hover {
+    background-color: white;
+    color: #87CEEB;
+    border: 2px solid #87CEEB;
+}
+
+.custom-button:active {
+    transform: scale(0.98);
+}
+
+/* Input Styles */
+.custom-input {
+    width: 50%;
+    padding: 10px;
+    border: 2px solid #87CEEB;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: white;
+    color: #333;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.custom-input:focus {
+    border-color: #4682B4;
+    /* Slightly deeper blue when focused */
+    box-shadow: 0 0 5px rgba(135, 206, 235, 0.5);
+}
+
+.custom-input:disabled {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+    border-color: #ccc;
+}
+
+/* Label Styles */
+.custom-label {
+    display: block;
+    margin-bottom: 8px;
+    color: #87CEEB;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Wrapper Styles */
+.input-wrapper,
+.button-wrapper,
+.label-wrapper {
+    margin-bottom: 15px;
+}

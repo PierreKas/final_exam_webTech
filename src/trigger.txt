@@ -1,0 +1,150 @@
+DELIMITER $$
+CREATE TRIGGER decrease_product_quantity 
+BEFORE INSERT 
+ON transactions 
+FOR EACH ROW
+BEGIN
+	
+	IF (SELECT quantity FROM product WHERE product_code=NEW.product_code) <=3
+	THEN
+	SIGNAL SQLSTATE '45000'
+	SET MESSAGE_TEXT='Few items remain in the stock';
+	ELSEIF NEW.quantity>=(SELECT quantity FROM product WHERE product_code=NEW.product_code) 
+	THEN
+	SIGNAL SQLSTATE '45000'
+	SET MESSAGE_TEXT='The stock is not enough';
+	ELSE
+		UPDATE product SET quantity= quantity - NEW.quantity WHERE product_code=NEW.product_code;
+	END IF;
+END$$
+-------------------------
+import React, { useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
+import axios from 'axios';
+import PORT_NUMBER from '../../port_number';
+
+function TransactionList() {
+    const [transactions, setTransactions] = useState([]);
+    const [filteredTransactions, setFilteredTransactions] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [globalSearch, setGlobalSearch] = useState('');
+
+    // Use history hook for routing
+    const history = useHistory();
+
+    // Fetch selling points on component mount
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            const url = `http://localhost:${PORT_NUMBER}/api/transactions/all`;
+            try {
+                setIsLoading(true);
+                const response = await axios.get(url);
+                setTransactions(response.data);
+                setFilteredTransactions(response.data);
+                setIsLoading(false);
+            } catch (error) {
+                console.error('Error fetching transactions', error);
+                setError('Failed to load transactions');
+                setIsLoading(false);
+            }
+        };
+        fetchTransactions();
+    }, []);
+
+    // Handle global search input changes
+    const handleGlobalSearchChange = (value) => {
+        setGlobalSearch(value);
+
+        // Filter transactions based on global search input
+        const filtered = transactions.filter(transaction =>
+            Object.values(transaction).some(val =>
+                String(val).toLowerCase().includes(value.toLowerCase())
+            )
+        );
+
+        transactions(filtered);
+    };
+
+    // Handle navigation to AddTransaction page
+    const handleAddNewTransaction = () => {
+        history.push('/transaction/add');
+    };
+
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
+
+    return (
+        <div>
+            {/* Container for search and add button */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '15px'
+            }}>
+                {/* Global Search Input */}
+                <input
+                    type="text"
+                    placeholder="Search all selling points..."
+                    value={globalSearch}
+                    onChange={(e) => handleGlobalSearchChange(e.target.value)}
+                    style={{
+                        flex: 1,
+                        marginRight: '15px',
+                        padding: '10px',
+                        fontSize: '16px'
+                    }}
+                />
+
+                <button
+                    onClick={handleAddNewTransaction}
+                    style={{
+                        padding: '10px 15px',
+                        backgroundColor: '#4CAF50',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '16px'
+                    }}
+                >
+                    Add New Transaction
+                </button>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                    <tr style={{ backgroundColor: '#f2f2f2' }}>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Product name</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Unit price</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Quantity</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Total price</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Client</th>
+                        <th style={{ border: '1px solid #ddd', padding: '8px' }}>Transaction date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {filteredTransactions.map((tr) => (
+                        <tr key={tr.transactionId} style={{ borderBottom: '1px solid #ddd' }}>
+                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{tr.product.productName}</td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{tr.product.sellingPrice}</td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{tr.quantity}</td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{tr.totalPrice}</td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{tr.client.fullName}</td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>{tr.sellingDate}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+
+            {filteredTransactions.length === 0 && (
+                <div style={{ textAlign: 'center', marginTop: '20px', color: '#888' }}>
+                    No transaction found matching your search
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default TransactionList;
