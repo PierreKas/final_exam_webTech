@@ -1,0 +1,3 @@
+[submodule "frontend/pharmacy_web_app"]
+	path = frontend/pharmacy_web_app
+	url = https://github.com/PierreKas/final_exam_webTech
